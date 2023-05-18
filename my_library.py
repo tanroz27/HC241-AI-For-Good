@@ -7,7 +7,7 @@ def cond_prob(table, evidence, evidence_value, target, target_value,):
   t_subset = up_table_subset(table, target, 'equals', target_value)  #now have table with only those with Flu
   e_list = up_get_column(t_subset, evidence)         #evidence column values taken from subsetted table
   p_b_a = sum([1 if v==evidence_value else 0 for v in e_list])/len(e_list)          #percentage of values in evidence column that match evidence value
-  return p_b_a
+  return p_b_a + .01
 
 def cond_probs_product(table, evidence_values, target_column, target_val):
   cond_prob_list = []
