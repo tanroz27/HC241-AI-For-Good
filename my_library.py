@@ -22,7 +22,7 @@ def prior_prob(table, target, target_value):
   p_a = sum([1 if v==target_value else 0 for v in t_list])/len(t_list)           #percentage of values that have target_value
   return p_a
 
-def naives_bayes
+#def naives_bayes
 
 
 def test_load ():
