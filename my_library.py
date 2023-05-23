@@ -40,3 +40,22 @@ def naive_bayes(table, evidence_row, target):
 
 def test_load ():
   return 'loaded'
+
+def metrics(zipped_predictions_list):
+  assert isinstance(zipped_predictions_list, list), f'Expecting Parameter to be a list but instead is {type(zipped_predictions_list)}'
+  assert all(isinstance(item, list) for item in zipped_predictions_list), f'Expecting Parameter to be a list of lists but instead is {type(zipped_predictions_list)}'
+  assert all(isinstance(item, (tuple, list)) and len(item) == 2 for item in zipped_predictions_list), 'Expecting Parameter to contain a pair of zipped items'
+  assert all(isinstance(item, (list, tuple)) and len(item) == 2 and all(isinstance(value, int) for value in item) for item in zipped_predictions_list), 'Expecting Parameter to contain pairs of ints, instead given non-ints'
+  assert all(isinstance(item, (list, tuple)) and all(value >= 0 for value in item) for item in zipped_predictions_list), "Expecting Parameter to contain pairs of positive values, instead given negative values"
+  #Unable to return assert for zipped list error
+  for pair in zipped_predictions_list:
+    tn = sum([1 if pair==[0,0] else 0 for pair in zipped_predictions_list])
+    tp = sum([1 if pair==[1,1] else 0 for pair in zipped_predictions_list])
+    fp = sum([1 if pair==[1,0] else 0 for pair in zipped_predictions_list])
+    fn = sum([1 if pair==[0,1] else 0 for pair in zipped_predictions_list])
+    pop = tn+tp+fp+fn
+  Accuracy = (tp + tn)/pop if pop>0 else 0
+  Precision = tp/(tp+fp) if tp+fp>0 else 0
+  Recall = tp/(tp+fn) if tp+fn>0 else 0
+  F1 = (2*Precision*Recall)/(Precision+Recall) if Precision+Recall > 0 else 0
+  return {'Precision': Precision, 'Recall': Recall, 'F1': F1, 'Accuracy': Accuracy}
