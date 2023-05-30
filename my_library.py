@@ -45,7 +45,7 @@ def metrics(zipped_predictions_list):
   assert isinstance(zipped_predictions_list, list), f'Expecting Parameter to be a list but instead is {type(zipped_predictions_list)}'
   assert all(isinstance(item, list) for item in zipped_predictions_list), f'Expecting Parameter to be a list of lists but instead is {type(zipped_predictions_list)}'
   assert all(isinstance(item, (tuple, list)) and len(item) == 2 for item in zipped_predictions_list), 'Expecting Parameter to contain a pair of zipped items'
-  assert all(isinstance(item, (list, tuple)) and len(item) == 2 and all(isinstance(value, int) for value in item) for item in zipped_predictions_list), 'Expecting Parameter to contain pairs of ints, instead given non-ints'
+  assert all(isinstance(item, (list, tuple)) and len(item) == 2 and all(isinstance(value, (int, float)) for value in item) for item in zipped_predictions_list), 'Expecting Parameter to contain pairs of ints, instead given non-ints'
   assert all(isinstance(item, (list, tuple)) and all(value >= 0 for value in item) for item in zipped_predictions_list), "Expecting Parameter to contain pairs of positive values, instead given negative values"
   #Unable to return assert for zipped list error
   tn = sum([1 if pair==[0,0] else 0 for pair in zipped_predictions_list])
@@ -58,3 +58,45 @@ def metrics(zipped_predictions_list):
   Recall = tp/(tp+fn) if tp+fn>0 else 0
   F1 = (2*Precision*Recall)/(Precision+Recall) if Precision+Recall > 0 else 0
   return {'Precision': Precision, 'Recall': Recall, 'F1': F1, 'Accuracy': Accuracy}
+
+from sklearn.ensemble import RandomForestClassifier  #make sure this makes it into your library
+def run_random_forest(train, test, target, n):
+  X = up_drop_column(train, target)
+  y = up_get_column(train,target)  
+  k_feature_table = up_drop_column(test, target) 
+  k_actuals = up_get_column(test, target)  
+  clf = RandomForestClassifier(n_estimators=n, max_depth=2, random_state=0)  
+  clf.fit(X, y)  #builds the trees as specified above
+  probs = clf.predict_proba(k_feature_table)
+  pos_probs = [p for n,p in probs]  #probs is list of [neg,pos] like we are used to seeing.
+  pos_probs[:5]
+  all_mets = []
+  for t in thresholds:
+    all_predictions = [1 if pos>t else 0 for pos in pos_probs]
+    pred_act_list = up_zip_lists(all_predictions, k_actuals)
+    mets = metrics(pred_act_list)
+    mets['Threshold'] = t
+    all_mets = all_mets + [mets]
+  all_mets[:2]
+  metrics_table = up_metrics_table(all_mets)
+
+  print(metrics_table)  #output we really want - to see the table
+  return None
+
+def try_archs(full_table, target, architectures, thresholds):
+  train_table, test_table = up_train_test_split(full_table, target, .4)
+  #copy paste code here
+  for arch in architectures:
+    all_results = up_neural_net(train_table, test_table, arch, target)
+    all_mets = []
+    for t in thresholds:
+      all_predictions = [1 if pos>t else 0 for neg, pos in all_results]
+      pred_act_list = up_zip_lists(all_predictions, up_get_column(test_table, target))
+      mets = metrics(pred_act_list)
+      mets['Threshold'] = t
+      all_mets = all_mets + [mets]
+    metrics_table = up_metrics_table(all_mets)
+    print(f'Architecture: {arch}')
+    print(up_metrics_table(all_mets))
+
+  return None  #main use is to print out threshold tables, not return anything useful.
