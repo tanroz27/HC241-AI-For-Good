@@ -100,3 +100,16 @@ def try_archs(full_table, target, architectures, thresholds):
     print(up_metrics_table(all_mets))
 
   return None  #main use is to print out threshold tables, not return anything useful.
+
+def my_zip_lists(list1, list2):
+  assert isinstance(list1, list), f'Expecting list1 to be list, instead give {type(list1)}'
+  assert isinstance(list2, list), f'Expecting list2 to be list, instead given {type(list2)}'
+  assert len(list1)==len(list2), f'Expecting length of list1 = list2, instead they mismatch, try len(list1) & len(list2)'
+  length = min(len(list1), len(list2))
+  new_list = []
+  for i in range(length):
+    zip = [list1[i], list2[i]]
+    new_list += [zip]
+  return new_list
+
+
